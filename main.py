@@ -16,6 +16,29 @@ from nltk.tokenize import word_tokenize # word_tokenize. nos ayuda a tokenizar t
 from nltk.corpus import wordnet # wornet es una librería para analizar sinonimos
 
 # Indicamos la ruta dónde nltk buscará los datos descargados en nuestro computador
-nltk.data.path.append('C:\Users\Alejandro\AppData\Roaming\nltk_data')
+nltk.data.path.append(r'C:\Users\Alejandro\AppData\Roaming\nltk_data')
 nltk.download('punkt')
+nltk.download('wordnet') # paquete para encontrar sinonimos de palabras
 
+# función para cargar las películas desde un archivo csv
+
+def load_movies(): 
+    # leemos el archivo que contiene inforamción del películas y seleccionamos las columnas más importantes
+    df = pd.read_csv("./Dataset/netflix_titles.csv")[['show_id','title','release_year','listed_in','rating','description']]
+    
+    # Renombramos las columnas para que sean más fáciles de entender
+    df.columns = ['id','title','year','category','rating','overview']
+    
+    # llenamos los espacios vacíos con texto vacío y convertimos los datos en una lista de diccionario
+    return df.fillna('').to_dict(orient='records')
+
+# Cargamos las peliculas al iniciar la API para no leer el archivo cada vez que alguien preguente por ellas
+movies_list =load_movies()  
+
+# Función para encontrar sinónimos de una palabra
+def get_synonyms(word): 
+    # Usamos wordnet para encontrar distintas palabras que significan lo mismo
+    return{lemma.name().lower() for syn in wordnet.synsets(word) for lemma in syn.lemmas() }
+
+# Creamos la aplicación FasAPI, que será el motor de nuestra API
+# Esto inicializa la API con una versión 
