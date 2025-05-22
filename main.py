@@ -42,3 +42,22 @@ def get_synonyms(word):
 
 # Creamos la aplicación FasAPI, que será el motor de nuestra API
 # Esto inicializa la API con una versión 
+
+app = FastAPI(title='mi aplicacion de peliculas', version='1.0.0')
+@app.get('/', tags=['Home'])
+def home():
+    # cuando entremos en el navegador a http://127.0.0.1:8000 veremos un mensaje de bienvenida
+    return HTMLResponse('<h1> Bienvenido a la API de peliculas </h1>')
+
+# Obteniendo la lista de películas
+# Creamos una ruta para obtener todas las películas
+# Ruta para obtener todas las películas
+@app.get('/movies', tags=['Movies'])
+def get_movies():
+    # Si hay películas, las enviamos, si no mostramos un error
+    return movies_list or HTMLResponse(status_code=500, detail="No hay datos de películas disponibles")
+# Ruta para obtener una película específica por su ID
+@app.get('/movies/{id}', tags=['Movies']) 
+def get_movies(id: str):
+    # Buscamos en la lista de películas la que tenga el mismo ID
+    return next((m for m in movies_list if m ['id'] == id), {"detalle": "película no encontrada"})
