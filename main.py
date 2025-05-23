@@ -19,7 +19,7 @@ from nltk.corpus import wordnet # wornet es una librería para analizar sinonimo
 nltk.data.path.append(r'C:\Users\Alejandro\AppData\Roaming\nltk_data')
 nltk.download('punkt')
 nltk.download('wordnet') # paquete para encontrar sinonimos de palabras
-
+nltk.download('punkt_tab')
 # función para cargar las películas desde un archivo csv
 
 def load_movies(): 
@@ -38,7 +38,7 @@ movies_list =load_movies()
 # Función para encontrar sinónimos de una palabra
 def get_synonyms(word): 
     # Usamos wordnet para encontrar distintas palabras que significan lo mismo
-    return{lemma.name().lower() for syn in wordnet.synsets(word) for lemma in syn.lemmas() }
+    return{lemma.name().lower() for syn in wordnet.synsets(word) for lemma in syn.lemmas()}
 
 # Creamos la aplicación FasAPI, que será el motor de nuestra API
 # Esto inicializa la API con una versión 
@@ -61,3 +61,20 @@ def get_movies():
 def get_movies(id: str):
     # Buscamos en la lista de películas la que tenga el mismo ID
     return next((m for m in movies_list if m ['id'] == id), {"detalle": "película no encontrada"})
+# Ruta del chatbot que responde con películas segun palabras clave de la categoria
+@app.get('/chatbot', tags=['chatbot'])
+def chatbot(query: str):
+    # Dividimos la consulta en palabras clave, para entender mejor la intension del usuario
+    query_words = word_tokenize(query.lower())
+    # Buscamos sinonimos de las palabras clave para ampliar la busqueda
+    synonyms = {word for q in query_words for word in get_synonyms(q)} | set(query_words)
+    
+    # Filtramos la lista de peliculas buscando coinsidencias en la categoria
+    results =[m for m in movies_list if any (s in m ['category'].lower() for s in synonyms)]
+    
+    # Si encontramos las peliculas, enviamos la lista de películas; sino, ostramos un mensaje de que no se encontraron cinsidencias
+    
+    return JSONResponse (content={
+    "respuesta": "aqui tienes algunas peliculas relacionadas." if results else "no encontre peliculas en esa categoria.",
+    "peliculas": results
+    })
